@@ -31,7 +31,7 @@ export class Game implements GameApi {
 	private static readonly countKey = 'idleClicker.count';
 	private static readonly lastActiveKey = 'idleClicker.lastActiveAt';
 	// Toggle the debug tab in the view.
-	private static readonly debugEnabled = true;
+	private static readonly debugEnabled = false;
 	private static readonly criticalChance = 0.005;
 	private static readonly criticalMultiplier = 2;
 	private static readonly criticalDisplayMs = 600;
