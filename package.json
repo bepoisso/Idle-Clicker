@@ -10,16 +10,36 @@
     "Other"
   ],
   "activationEvents": [
-    "onStartupFinished",
-    "onView:idleClicker.view"
+    "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "clicker-game",
+          "title": "Clicker Game",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
     "views": {
       "explorer": [
         {
           "id": "idleClicker.view",
           "name": "Idle Clicker",
+          "type": "webview"
+        }
+      ],
+      "clicker-game": [
+        {
+          "id": "clicker.shopView",
+          "name": "Shop",
+          "type": "webview"
+        },
+        {
+          "id": "clicker.debugView",
+          "name": "Debug",
           "type": "webview"
         }
       ]

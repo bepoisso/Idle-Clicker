@@ -134,6 +134,14 @@ export class Shop {
 		return cost;
 	}
 
+	public reset(): void {
+		this.unlockedIds = new Set();
+		this.purchaseCounts = new Map();
+		void this.globalState.update(Shop.unlockedKey, []);
+		void this.globalState.update(Shop.purchaseCountsKey, {});
+		void this.globalState.update(Shop.legacyPurchasedKey, []);
+	}
+
 	private persistUnlocked(): void {
 		void this.globalState.update(
 			Shop.unlockedKey,
