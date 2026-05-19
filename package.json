@@ -38,6 +38,11 @@
           "type": "webview"
         },
         {
+          "id": "clicker.prestigeView",
+          "name": "Prestige",
+          "type": "webview"
+        },
+        {
           "id": "clicker.debugView",
           "name": "Debug",
           "type": "webview"

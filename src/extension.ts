@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { Game } from './game';
 import { DebugViewProvider } from './debugView';
 import { ShopSidebarViewProvider } from './shopView';
+import { PrestigeViewProvider } from './prestigeView';
 
 export function activate(context: vscode.ExtensionContext) {
 	const game = new Game(context);
@@ -9,6 +10,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const viewProvider = game.getViewProvider();
 	const shopSidebarProvider = new ShopSidebarViewProvider(context.extensionUri);
 	const debugViewProvider = new DebugViewProvider(context.extensionUri);
+	const prestigeViewProvider = new PrestigeViewProvider(context.extensionUri);
 	shopSidebarProvider.setGame(game);
 	debugViewProvider.setGame(game);
 	game.setShopSidebarViewProvider(shopSidebarProvider);
@@ -27,6 +29,12 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.registerWebviewViewProvider(
 			DebugViewProvider.viewType,
 			debugViewProvider
+		)
+	);
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider(
+			PrestigeViewProvider.viewType,
+			prestigeViewProvider
 		)
 	);
 
