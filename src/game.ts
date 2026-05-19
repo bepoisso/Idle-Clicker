@@ -30,8 +30,8 @@ export class Game implements GameApi {
 
 	private static readonly countKey = 'idleClicker.count';
 	private static readonly lastActiveKey = 'idleClicker.lastActiveAt';
-	// Toggle the debug tab in the view.
-	private static readonly debugEnabled = false;
+	// Enable debug tools only in development mode.
+	private readonly debugEnabled: boolean;
 	private static readonly criticalChance = 0.005;
 	private static readonly criticalMultiplier = 2;
 	private static readonly criticalDisplayMs = 600;
@@ -57,8 +57,11 @@ export class Game implements GameApi {
 	private criticalMultiplier = Game.criticalMultiplier;
 	private globalMultiplier = 1;
 	private offlinePercent = 0;
+	private lastShopRefreshCount = -1;
+	private lastShopRefreshAt = 0;
 
 	constructor(context: vscode.ExtensionContext) {
+		this.debugEnabled = context.extensionMode === vscode.ExtensionMode.Development;
 		this.globalState = context.globalState;
 		this.shop = new Shop(this.globalState);
 		this.passiveUpgrades = [
@@ -127,7 +130,7 @@ export class Game implements GameApi {
 	}
 
 	public isDebugEnabled(): boolean {
-		return Game.debugEnabled;
+		return this.debugEnabled;
 	}
 
 	public getShop(): Shop {
@@ -144,7 +147,7 @@ export class Game implements GameApi {
 
 	public setShopSidebarViewProvider(provider: ShopSidebarViewProvider): void {
 		this.shopSidebarViewProvider = provider;
-		this.shopSidebarViewProvider.update();
+		this.updateShopSidebar(true);
 	}
 
 	public registerUpgrade(upgrade: Upgrade): void {
@@ -170,7 +173,7 @@ export class Game implements GameApi {
 		this.refreshModifiers();
 		this.refreshAutoClickRate();
 		this.markActive();
-		this.updateView();
+		this.updateView(true);
 		return true;
 	}
 
@@ -189,7 +192,7 @@ export class Game implements GameApi {
 	}
 
 	public debugAdd(amount: number): void {
-		if (!Game.debugEnabled || !Number.isFinite(amount)) {
+		if (!this.debugEnabled || !Number.isFinite(amount)) {
 			return;
 		}
 
@@ -197,11 +200,11 @@ export class Game implements GameApi {
 		void this.globalState.update(Game.countKey, this.count);
 		this.shop.updateUnlocks(this.count);
 		this.markActive();
-		this.updateView();
+		this.updateView(true);
 	}
 
 	public debugReset(): void {
-		if (!Game.debugEnabled) {
+		if (!this.debugEnabled) {
 			return;
 		}
 
@@ -214,7 +217,7 @@ export class Game implements GameApi {
 		this.refreshModifiers();
 		this.refreshAutoClickRate();
 		this.markActive();
-		this.updateView();
+		this.updateView(true);
 	}
 
 	private refreshAutoClickRate(): void {
@@ -241,14 +244,32 @@ export class Game implements GameApi {
 		}, Game.autoClickTickMs);
 	}
 
-	private updateView(): void {
+	private updateView(forceShopUpdate = false): void {
 		this.shop.updateUnlocks(Math.floor(this.count));
 		this.view.display(
 			this.getNumber(),
 			this.getCps(),
 			this.isCriticalActive()
 		);
-		this.shopSidebarViewProvider?.update();
+		this.updateShopSidebar(forceShopUpdate);
+	}
+
+	private updateShopSidebar(force = false): void {
+		if (!this.shopSidebarViewProvider) {
+			return;
+		}
+
+		const now = Date.now();
+		const flooredCount = Math.floor(this.count);
+		const countChanged = flooredCount !== this.lastShopRefreshCount;
+		const timeElapsed = now - this.lastShopRefreshAt > 250;
+		if (!force && !countChanged && !timeElapsed) {
+			return;
+		}
+
+		this.lastShopRefreshCount = flooredCount;
+		this.lastShopRefreshAt = now;
+		this.shopSidebarViewProvider.update();
 	}
 
 	private recordCps(amount: number): void {
